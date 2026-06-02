@@ -13,7 +13,7 @@ ROBOT_XML = ROOT / "robot" / "rsk" / "scene.xml"
 model_path = str(ROBOT_XML)
 
 DEFAULT_CAMERA_CONFIG = {
-    "distance": 4.0,
+    "distance": 1.0,
 }
 
 
@@ -248,7 +248,7 @@ class AntEnv(MujocoEnv, utils.EzPickle):
         exclude_current_positions_from_observation: bool = True,
         include_cfrc_ext_in_observation: bool = True,
         **kwargs,
-    ):
+    ):  
         utils.EzPickle.__init__(
             self,
             xml_file,
