@@ -242,7 +242,7 @@ class AntEnv(MujocoEnv, utils.EzPickle):
         healthy_reward: float = 1.0,
         main_body: int | str = 1,
         terminate_when_unhealthy: bool = True,
-        healthy_z_range: tuple[float, float] = (0.2, 1.0),
+        healthy_z_range: tuple[float, float] = (0, 0.5),
         contact_force_range: tuple[float, float] = (-1.0, 1.0),
         reset_noise_scale: float = 0.1,
         exclude_current_positions_from_observation: bool = True,
@@ -423,6 +423,8 @@ class AntEnv(MujocoEnv, utils.EzPickle):
         self.set_state(qpos, qvel)
 
         observation = self._get_obs()
+
+        print(f"self.data.qpos[0] : {self.data.qpos[0]}, self.data.qpos[1] : {self.data.qpos[1]}")
 
         return observation
 
