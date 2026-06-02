@@ -176,7 +176,7 @@ register(
 
 register(
     id="Antony",
-    entry_point="src.SB_rsk.tasks.ant_v5:AntEnv",
+    entry_point="src.SB_rsk.tasks.rsk_vel:AntEnv",
     max_episode_steps=1000,
     reward_threshold=6000.0,
 )

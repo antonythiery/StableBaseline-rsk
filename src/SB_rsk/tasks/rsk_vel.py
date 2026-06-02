@@ -6,6 +6,11 @@ from gymnasium import utils
 from gymnasium.envs.mujoco import MujocoEnv
 from gymnasium.spaces import Box
 
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+ROBOT_XML = ROOT / "robot" / "rsk" / "scene.xml"
+model_path = str(ROBOT_XML)
 
 DEFAULT_CAMERA_CONFIG = {
     "distance": 4.0,
@@ -228,7 +233,7 @@ class AntEnv(MujocoEnv, utils.EzPickle):
 
     def __init__(
         self,
-        xml_file: str = "ant.xml",
+        xml_file: str = model_path,
         frame_skip: int = 5,
         default_camera_config: dict[str, float | int] = DEFAULT_CAMERA_CONFIG,
         forward_reward_weight: float = 1,
