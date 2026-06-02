@@ -1,0 +1,33 @@
+{
+	"url": "https://cad.onshape.com/documents/81e7adfaf4d8d74f2936fbd5/w/818b4900a6d8b2d355e27b2e/e/0901aee84041dd8a16d146d1",
+	"output_format": "mujoco",
+	"simplify_stls": true,
+	"max_stl_size": 1,
+
+	"ignore": {
+		"*": "collision",
+		"!frame": "collision",
+		"!board": "collision",
+		"!m3_spacer": "collision",
+		"!counter_low": "collision",
+		"!counter_high": "collision",
+		"!kicker_*": "collision"
+	},
+
+	"joint_properties": {
+		"*wheel*": {
+		   "type": "velocity",
+		   "limits": [-16, 16],
+		   "kv": 5.0,
+     		   "range": false
+		},
+		"kicker": {
+     		   "range": true,
+		   "kp": 500
+		}
+	},
+
+    "post_import_commands": [
+        "python robot_model/robot_patcher.py"
+    ]
+}

@@ -1,0 +1,14 @@
+{
+    "configuration": "default",
+    "documentId": "43fcd25b5886fd1672763bd4",
+    "documentMicroversion": "61496ffc99149721b86d2fef",
+    "documentVersion": "ac867c38548ba24204108812",
+    "elementId": "18cf7ef95e422064250c1e0a",
+    "fullConfiguration": "default",
+    "id": "MC7yRjcRpFNIJMujK",
+    "isStandardContent": false,
+    "name": "counter_high <1>",
+    "partId": "JHD",
+    "suppressed": false,
+    "type": "Part"
+}
