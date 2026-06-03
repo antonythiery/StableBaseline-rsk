@@ -8,17 +8,21 @@ import mujoco.viewer
 env = gym.make("Antony", render_mode="rgb_array")
 
 model = A2C("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=1)
+model.learn(total_timesteps=10_000)
 
 vec_env = model.get_env()
 obs = vec_env.reset()
 
-viewer = mujoco.viewer.launch_passive(env.unwrapped.model, env.unwrapped.data)
+viewer = mujoco.viewer.launch_passive(
+    env.unwrapped.model, 
+    env.unwrapped.data, 
+    show_left_ui=False, 
+    show_right_ui=False
+)
 
 try:
     for i in range(10000):
         action, _state = model.predict(obs, deterministic=True)
-        zero_action = np.array([[0.0, 0.0, 0.0, 0.0]])
         obs, reward, done, info = vec_env.step(action)
 
         viewer.sync()

@@ -424,7 +424,6 @@ class AntEnv(MujocoEnv, utils.EzPickle):
 
         observation = self._get_obs()
 
-        print(f"self.data.qpos[0] : {self.data.qpos[0]}, self.data.qpos[1] : {self.data.qpos[1]}")
 
         return observation
 
