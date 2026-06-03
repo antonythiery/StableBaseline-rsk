@@ -246,7 +246,7 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
         healthy_z_range: tuple[float, float] = (0, 0.5),
         contact_force_range: tuple[float, float] = (-1.0, 1.0),
         reset_noise_scale: float = 0.1,
-        exclude_current_positions_from_observation: bool = True,
+        exclude_current_positions_from_observation: bool = False,
         include_cfrc_ext_in_observation: bool = True,
         **kwargs,
     ):  
@@ -355,13 +355,13 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
     def step(self, action):
         xy_position_before = self.data.body(self._main_body).xpos[:2].copy()
         self.do_simulation(action, self.frame_skip)
-        xy_position_after = self.data.body(self._main_body).xpos[:2].copy()
+        xy_position_after = self.data.body(self._main_body).xpos[:2].copy() 
 
         xy_velocity = (xy_position_after - xy_position_before) / self.dt
         x_velocity, y_velocity = xy_velocity
 
         observation = self._get_obs()
-        reward, reward_info = self._get_rew(x_velocity, action)
+        reward, reward_info = self._get_rew(x_velocity ,action)
         terminated = (not self.is_healthy) and self._terminate_when_unhealthy
         info = {
             "x_position": self.data.qpos[0],
@@ -377,7 +377,7 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
         # truncation=False as the time limit is handled by the `TimeLimit` wrapper added during `make`
         return observation, reward, terminated, False, info
 
-    def _get_rew(self, x_velocity: float, action):
+    def _get_rew(self, x_velocity, action):
         forward_reward = x_velocity * self._forward_reward_weight
         healthy_reward = self.healthy_reward
         rewards = forward_reward + healthy_reward

@@ -6,7 +6,13 @@ import mujoco
 import mujoco.viewer
 from stable_baselines3.common.evaluation import evaluate_policy
 
-env = gym.make("RSK", render_mode="rgb_array", include_cfrc_ext_in_observation=False)
+env = gym.make(
+    "RSK", 
+    render_mode="rgb_array", 
+    exclude_current_positions_from_observation=False, 
+    include_cfrc_ext_in_observation=False,
+    forward_reward_weight = 1
+)
 
 print(f"env.action_space : {env.action_space}")
 
@@ -31,7 +37,7 @@ viewer = mujoco.viewer.launch_passive(
 
 try:
     for i in range(10000):
-        action, _state = model.predict(obs, deterministic=True)
+        action, _state = model.predict(obs, deterministic=False)
         obs, reward, done, info = vec_env.step(action)
 
         viewer.sync()
