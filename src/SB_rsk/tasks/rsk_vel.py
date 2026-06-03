@@ -3,7 +3,8 @@ __credits__ = ["Kallinteris-Andreas"]
 import numpy as np
 
 from gymnasium import utils
-from gymnasium.envs.mujoco import MujocoEnv
+# from gymnasium.envs.mujoco import MujocoEnv
+from src.SB_rsk.tasks.mujoco_env import MujocoEnv 
 from gymnasium.spaces import Box
 
 from pathlib import Path
@@ -17,7 +18,7 @@ DEFAULT_CAMERA_CONFIG = {
 }
 
 
-class AntEnv(MujocoEnv, utils.EzPickle):
+class RSKEnv(MujocoEnv, utils.EzPickle):
     r"""
     ## Description
     This environment is based on the one introduced by Schulman, Moritz, Levine, Jordan, and Abbeel in ["High-Dimensional Continuous Control Using Generalized Advantage Estimation"](https://arxiv.org/abs/1506.02438).
@@ -413,17 +414,12 @@ class AntEnv(MujocoEnv, utils.EzPickle):
         noise_low = -self._reset_noise_scale
         noise_high = self._reset_noise_scale
 
-        qpos = self.init_qpos + self.np_random.uniform(
-            low=noise_low, high=noise_high, size=self.model.nq
-        )
-        qvel = (
-            self.init_qvel
-            + self._reset_noise_scale * self.np_random.standard_normal(self.model.nv)
-        )
+        qpos = self.init_qpos
+        qvel = self.init_qvel
+    
         self.set_state(qpos, qvel)
 
         observation = self._get_obs()
-
 
         return observation
 
