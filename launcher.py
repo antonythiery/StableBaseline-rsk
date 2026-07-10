@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import gymnasium as gym
 from stable_baselines3 import A2C
@@ -8,7 +9,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 
 env = gym.make(
     "RSK", 
-    render_mode="rgb_array", 
+    render_mode="human", #"rgb_array" 
     exclude_current_positions_from_observation=False, 
     include_cfrc_ext_in_observation=False,
     forward_reward_weight = 1
@@ -25,9 +26,11 @@ model.learn(total_timesteps=10_000)
 # mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=100, warn=False)
 # print(f"mean_reward: {mean_reward:.2f} +/- {std_reward:.2f}")
 
+
 vec_env = model.get_env()
 obs = vec_env.reset()
 
+env.close()
 viewer = mujoco.viewer.launch_passive(
     env.unwrapped.model,
     env.unwrapped.data,
@@ -41,5 +44,6 @@ try:
         obs, reward, done, info = vec_env.step(action)
 
         viewer.sync()
+        time.sleep(1/60)
 except KeyboardInterrupt:
     pass

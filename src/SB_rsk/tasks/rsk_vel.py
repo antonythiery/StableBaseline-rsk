@@ -3,6 +3,7 @@ __credits__ = ["Kallinteris-Andreas"]
 import numpy as np
 
 from gymnasium import utils
+import mujoco
 # from gymnasium.envs.mujoco import MujocoEnv
 from src.SB_rsk.tasks.mujoco_env import MujocoEnv 
 from gymnasium.spaces import Box
@@ -248,6 +249,8 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
         reset_noise_scale: float = 0.1,
         exclude_current_positions_from_observation: bool = False,
         include_cfrc_ext_in_observation: bool = True,
+        lateral_cost_weight: float = 1.0,
+        angular_cost_weight: float = 0.1,
         **kwargs,
     ):  
         utils.EzPickle.__init__(
@@ -288,6 +291,9 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
         )
         self._include_cfrc_ext_in_observation = include_cfrc_ext_in_observation
 
+        self._lateral_cost_weight = lateral_cost_weight
+        self._angular_cost_weight = angular_cost_weight
+
         MujocoEnv.__init__(
             self,
             xml_file,
@@ -296,6 +302,9 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
             default_camera_config=default_camera_config,
             **kwargs,
         )
+
+        base_jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "base_freejoint")
+        self._base_dofadr = int(self.model.jnt_dofadr[base_jid])
 
         self.metadata = {
             "render_modes": [
@@ -322,6 +331,8 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
             "qvel": self.data.qvel.size,
             "cfrc_ext": self.data.cfrc_ext[1:].size * include_cfrc_ext_in_observation,
         }
+
+        
 
     @property
     def healthy_reward(self):
@@ -353,15 +364,14 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
         return is_healthy
 
     def step(self, action):
-        xy_position_before = self.data.body(self._main_body).xpos[:2].copy()
         self.do_simulation(action, self.frame_skip)
-        xy_position_after = self.data.body(self._main_body).xpos[:2].copy() 
 
-        xy_velocity = (xy_position_after - xy_position_before) / self.dt
-        x_velocity, y_velocity = xy_velocity
+        x_velocity = float(self.data.qvel[self._base_dofadr + 0])
+        y_velocity = float(self.data.qvel[self._base_dofadr + 1])
+        yaw_velocity = float(self.data.qvel[self._base_dofadr + 5])
 
         observation = self._get_obs()
-        reward, reward_info = self._get_rew(x_velocity ,action)
+        reward, reward_info = self._get_rew(x_velocity, y_velocity, yaw_velocity, action)
         terminated = (not self.is_healthy) and self._terminate_when_unhealthy
         info = {
             "x_position": self.data.qpos[0],
@@ -369,30 +379,33 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
             "distance_from_origin": np.linalg.norm(self.data.qpos[0:2], ord=2),
             "x_velocity": x_velocity,
             "y_velocity": y_velocity,
+            "yaw_velocity": yaw_velocity,
             **reward_info,
         }
 
         if self.render_mode == "human":
             self.render()
-        # truncation=False as the time limit is handled by the `TimeLimit` wrapper added during `make`
         return observation, reward, terminated, False, info
 
-    def _get_rew(self, x_velocity, action):
+    def _get_rew(self, x_velocity, y_velocity, yaw_velocity, action):
         forward_reward = x_velocity * self._forward_reward_weight
+        lateral_cost = self._lateral_cost_weight * (y_velocity**2)
+        angular_cost = self._angular_cost_weight * (yaw_velocity**2)
         healthy_reward = self.healthy_reward
         rewards = forward_reward + healthy_reward
 
         ctrl_cost = self.control_cost(action)
         contact_cost = self.contact_cost
-        costs = ctrl_cost + contact_cost
 
-        reward = rewards - costs
+        reward = forward_reward + healthy_reward - ctrl_cost - contact_cost - lateral_cost - angular_cost
 
         reward_info = {
             "reward_forward": forward_reward,
             "reward_ctrl": -ctrl_cost,
             "reward_contact": -contact_cost,
             "reward_survive": healthy_reward,
+            "reward_lateral": -lateral_cost,
+            "reward_angular": -angular_cost,
         }
 
         return reward, reward_info

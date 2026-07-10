@@ -12,7 +12,7 @@
       </default>
       <!-- Wheel are in contype 2, they collide ground only -->
 
-      <default class="wheel_collision">
+      <default class="collision_wheel">
         <geom group="3" contype="2" conaffinity="1"/>
 
       </default>
@@ -216,7 +216,7 @@
 
         <!-- Custom capsule -->
 
-        <geom name="wheel1_collision" pos="0 0 -0.01" type="capsule" size="0.035 0.0001" zaxis="0 0 1" class="wheel_collision" />
+        <geom name="wheel1_capsule" pos="0 0 -0.01" type="capsule" size="0.035 0.0001" zaxis="0 0 1" class="collision_wheel" />
         <inertial pos="1.83303e-07 -1.4301e-06 -0.0100384" mass="0.0956154" fullinertia="3.22787e-05 3.22794e-05 6.26624e-05 8.62e-10 -7.46e-10 8e-12"/>
         <!-- Part wheel2 -->
         <geom type="mesh" class="visual" pos="0 -0 -0.0075" quat="0 -0 1 0" mesh="wheel2" material="wheel2_material"/>
@@ -394,7 +394,7 @@
 
         <!-- Custom capsule -->
 
-        <geom name="wheel2_collision" pos="0 0 -0.01" type="capsule" size="0.035 0.0001" zaxis="0 0 1" class="wheel_collision" />
+        <geom name="wheel2_capsule" pos="0 0 -0.01" type="capsule" size="0.035 0.0001" zaxis="0 0 1" class="collision_wheel" />
         <inertial pos="1.83303e-07 -1.4301e-06 -0.0100384" mass="0.0956154" fullinertia="3.22787e-05 3.22794e-05 6.26624e-05 8.62e-10 -7.46e-10 8e-12"/>
         <!-- Part wheel2_2 -->
         <geom type="mesh" class="visual" pos="0 -0 -0.0075" quat="0 0 1 -0" mesh="wheel2" material="wheel2_material"/>
@@ -572,7 +572,7 @@
 
         <!-- Custom capsule -->
 
-        <geom name="wheel3_collision" pos="0 0 -0.01" type="capsule" size="0.035 0.0001" zaxis="0 0 1" class="wheel_collision" />
+        <geom name="wheel3_capsule" pos="0 0 -0.01" type="capsule" size="0.035 0.0001" zaxis="0 0 1" class="collision_wheel" />
         <inertial pos="1.83303e-07 -1.4301e-06 -0.0100384" mass="0.0956154" fullinertia="3.22787e-05 3.22794e-05 6.26624e-05 8.62e-10 -7.46e-10 8e-12"/>
         <!-- Part wheel2_3 -->
         <geom type="mesh" class="visual" pos="-0 -0 -0.0075" quat="0 -0 1 -0" mesh="wheel2" material="wheel2_material"/>
@@ -819,16 +819,16 @@
   </asset>
   <actuator>
     <position class="robot_model" name="kicker" joint="kicker" kp="500" inheritrange="1"/>
-    <motor class="robot_model" name="wheel1" joint="wheel1" ctrlrange="-1 1"/>
-    <motor class="robot_model" name="wheel2" joint="wheel2" ctrlrange="-1 1"/>
-    <motor class="robot_model" name="wheel3" joint="wheel3" ctrlrange="-1 1"/>
+    <motor class="robot_model" name="wheel1" joint="wheel1" ctrlrange="-1024 1024"/>
+    <motor class="robot_model" name="wheel2" joint="wheel2" ctrlrange="-1024 1024"/>
+    <motor class="robot_model" name="wheel3" joint="wheel3" ctrlrange="-1024 1024"/>
   </actuator>
 
 
   <contact>
-    <pair geom1="floor" geom2="wheel1_collision" condim="3" friction="0.1 1.0 0.005 0.0001 0.0001"/>
-    <pair geom1="floor" geom2="wheel2_collision" condim="3" friction="0.1 1.0 0.005 0.0001 0.0001"/>
-    <pair geom1="floor" geom2="wheel3_collision" condim="3" friction="0.1 1.0 0.005 0.0001 0.0001"/>
+    <pair geom1="floor" geom2="wheel1_capsule" condim="3" friction="0.1 1.0 0.005 0.0001 0.0001"/>
+    <pair geom1="floor" geom2="wheel2_capsule" condim="3" friction="0.1 1.0 0.005 0.0001 0.0001"/>
+    <pair geom1="floor" geom2="wheel3_capsule" condim="3" friction="0.1 1.0 0.005 0.0001 0.0001"/>
   </contact>
 
   <equality/>
