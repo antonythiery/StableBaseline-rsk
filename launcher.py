@@ -13,8 +13,8 @@ from wandb.integration.sb3 import WandbCallback
 
 config = {
     "policy_type": "MlpPolicy",
-    "total_timesteps": 200_000,
-    "env_id": "RSK",
+    "total_timesteps": 600_000,
+    "env_id": "rsk_pos",
     "algo": "PPO",
     "forward_reward_weight": 1,
     "n_envs": 8,

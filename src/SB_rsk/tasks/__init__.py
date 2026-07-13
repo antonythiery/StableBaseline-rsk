@@ -16,8 +16,15 @@ def _raise_mujoco_py_error(*args: Any, **kwargs: Any):
 
 
 register(
-    id="RSK",
+    id="rsk_vel",
     entry_point="src.SB_rsk.tasks.rsk_vel:RSKEnv",
+    max_episode_steps=1000,
+    reward_threshold=6000.0,
+)
+
+register(
+    id="rsk_pos",
+    entry_point="src.SB_rsk.tasks.rsk_pos:RSKEnv",
     max_episode_steps=1000,
     reward_threshold=6000.0,
 )
