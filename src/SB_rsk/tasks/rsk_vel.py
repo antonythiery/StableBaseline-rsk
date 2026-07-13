@@ -183,8 +183,8 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
         return observation, reward, terminated, False, info
 
     def _get_rew(self, x_velocity, y_velocity, yaw_velocity, action):
-        forward_reward = -y_velocity * self._forward_reward_weight
-        lateral_cost = self._lateral_cost_weight * (x_velocity**2)
+        forward_reward = x_velocity * self._forward_reward_weight
+        lateral_cost = self._lateral_cost_weight * (y_velocity**2)
         angular_cost = self._angular_cost_weight * (yaw_velocity**2)
         healthy_reward = self.healthy_reward
         rewards = forward_reward + healthy_reward
