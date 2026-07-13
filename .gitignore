@@ -25,3 +25,6 @@ plot_*.py
 *.png
 *.pt
 *.onnx
+
+models/*
+runs/*
