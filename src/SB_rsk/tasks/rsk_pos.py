@@ -48,14 +48,14 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
         include_cfrc_ext_in_observation: bool = True,
         lateral_cost_weight: float = 1.0,
         angular_cost_weight: float = 0.1,
-        target_x: float = 1.0,
-        target_y: float = 0.0,
         target_radius: float = 0.1,
         progress_reward_weight: float = 1.0,
         distance_cost_weight: float = 1.0,
         stopping_reward_weight: float = 1.0,
         stopping_scale: float = 0.1,
         arrival_bonus: float = 10.0,
+        target_range_min: float = 0.5,
+        target_range_max: float = 1.5,
         **kwargs,
     ):  
         utils.EzPickle.__init__(
@@ -74,14 +74,14 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
             reset_noise_scale,
             exclude_current_positions_from_observation,
             include_cfrc_ext_in_observation,
-            target_x,
-            target_y,
             target_radius,
             progress_reward_weight,
             distance_cost_weight,
             stopping_reward_weight,
             stopping_scale,
             arrival_bonus,
+            target_range_min,
+            target_range_max,
             **kwargs,
         )
 
@@ -107,8 +107,10 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
         self._lateral_cost_weight = lateral_cost_weight
         self._angular_cost_weight = angular_cost_weight
 
-        self._target_x = target_x
-        self._target_y = target_y
+        self._target_range_min = target_range_min
+        self._target_range_max = target_range_max
+        self._target_x = 1.0
+        self._target_y = 0.0
         self._target_radius = target_radius
         self._progress_reward_weight = progress_reward_weight
         self._distance_cost_weight = distance_cost_weight    
@@ -141,6 +143,7 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
         obs_size = self.data.qpos.size + self.data.qvel.size
         obs_size -= 2 * exclude_current_positions_from_observation
         obs_size += self.data.cfrc_ext[1:].size * include_cfrc_ext_in_observation
+        obs_size += 2 # for target_relative (x, y)
 
         self.observation_space = Box(
             low=-np.inf, high=np.inf, shape=(obs_size,), dtype=np.float64
@@ -152,6 +155,7 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
             - 2 * exclude_current_positions_from_observation,
             "qvel": self.data.qvel.size,
             "cfrc_ext": self.data.cfrc_ext[1:].size * include_cfrc_ext_in_observation,
+            "target_relative": 2,
         }
 
     @property
@@ -245,7 +249,7 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
             + healthy_reward
             + stopping_reward
             + arrival_bonus
-            - ctrl_cost
+            - ctrl_cost 
             - contact_cost
             - distance_cost
             - angular_cost
@@ -272,11 +276,17 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
         if self._exclude_current_positions_from_observation:
             position = position[2:]
 
+        x_position, y_position = self._get_xy_position()
+        target_relative = np.array([
+            self._target_x - x_position,
+            self._target_y - y_position,
+        ])
+
         if self._include_cfrc_ext_in_observation:
             contact_force = self.contact_forces[1:].flatten()
-            return np.concatenate((position, velocity, contact_force))
+            return np.concatenate((position, velocity, contact_force, target_relative))
         else:
-            return np.concatenate((position, velocity))
+            return np.concatenate((position, velocity, target_relative))
 
     def reset_model(self):
         noise_low = -self._reset_noise_scale
@@ -284,12 +294,17 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
 
         qpos = self.init_qpos
         qvel = self.init_qvel
-    
+
         self.set_state(qpos, qvel)
+
+        angle = self.np_random.uniform(0, 2 * np.pi)
+        radius = self.np_random.uniform(self._target_range_min, self._target_range_max)
+        # self._target_x = radius * np.cos(angle)
+        # self._target_y = radius * np.sin(angle)
 
         x_position, y_position = self._get_xy_position()
         self._prev_distance_to_target = np.sqrt(
-            (self._target_x - x_position)**2 + (self._target_y - y_position)**2
+            (self._target_x - x_position) ** 2 + (self._target_y - y_position) ** 2
         )
 
         observation = self._get_obs()
