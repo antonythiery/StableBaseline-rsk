@@ -299,8 +299,8 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
 
         angle = self.np_random.uniform(0, 2 * np.pi)
         radius = self.np_random.uniform(self._target_range_min, self._target_range_max)
-        # self._target_x = radius * np.cos(angle)
-        # self._target_y = radius * np.sin(angle)
+        self._target_x = radius * np.cos(angle)
+        self._target_y = radius * np.sin(angle)
 
         x_position, y_position = self._get_xy_position()
         self._prev_distance_to_target = np.sqrt(

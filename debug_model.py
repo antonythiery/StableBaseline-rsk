@@ -7,6 +7,7 @@ import mujoco.viewer
 from stable_baselines3 import PPO
 
 import src.SB_rsk.tasks  # nécessaire pour enregistrer l'env "RSK"
+from utils import draw_target_marker
 
 def main():
     parser = argparse.ArgumentParser()
@@ -16,8 +17,8 @@ def main():
     args = parser.parse_args()
 
     env = gym.make(
-        "RSK",
-        render_mode=None,  # pas de MujocoRenderer interne, on gère notre propre viewer
+        "rsk_pos",
+        render_mode=None,
         exclude_current_positions_from_observation=False,
         include_cfrc_ext_in_observation=False,
         forward_reward_weight=1,
@@ -45,6 +46,14 @@ def main():
                 done = terminated or truncated
                 ep_reward += reward
                 step_count += 1
+
+                print(f"Target: ({env.unwrapped._target_x}, {env.unwrapped._target_y})" )
+
+                draw_target_marker(
+                    viewer,
+                    env.unwrapped._target_x,
+                    env.unwrapped._target_y,
+                )
 
                 viewer.sync()
                 time.sleep(1 / 60)

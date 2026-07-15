@@ -10,6 +10,7 @@ import mujoco.viewer
 from stable_baselines3.common.evaluation import evaluate_policy
 import wandb
 from wandb.integration.sb3 import WandbCallback
+from utils import draw_target_marker
 
 config = {
     "policy_type": "MlpPolicy",
@@ -89,6 +90,12 @@ if __name__ == "__main__":
             obs, reward, terminated, truncated, info = viz_env.step(action)
             if terminated or truncated:
                 obs, _ = viz_env.reset()
+
+            draw_target_marker(
+                viewer,
+                viz_env.unwrapped._target_x,
+                viz_env.unwrapped._target_y,
+            )
 
             viewer.sync()
             time.sleep(1/60)
