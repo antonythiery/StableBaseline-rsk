@@ -129,6 +129,11 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
 
         base_jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "base_freejoint")
         self._base_dofadr = int(self.model.jnt_dofadr[base_jid])
+        self._base_qposadr = int(self.model.jnt_qposadr[base_jid])
+
+
+        base_jid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_JOINT, "base_freejoint")
+        self._base_dofadr = int(self.model.jnt_dofadr[base_jid])
 
         self.metadata = {
             "render_modes": [
@@ -186,13 +191,19 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
         min_z, max_z = self._healthy_z_range
         is_healthy = np.isfinite(state).all() and min_z <= state[2] <= max_z
         return is_healthy
+    
+    def _get_yaw(self):
+        """Get yaw from quaternion"""
+        qw, qx, qy, qz = self.data.qpos[self._base_qposadr + 3 : self._base_qposadr + 7]
+        yaw = np.arctan2(2 * (qw * qz + qx * qy), 1 - 2 * (qy**2 + qz**2))
+        return yaw
 
     def step(self, action):
         self.do_simulation(action, self.frame_skip)
 
         x_position = float(self.data.qpos[self._base_dofadr + 0])
         y_position = float(self.data.qpos[self._base_dofadr + 1])
-        yaw_position = float(self.data.qpos[self._base_dofadr + 5])
+        yaw_position = self._get_yaw()#(self.data.qpos[self._base_dofadr + 5])
         x_velocity = float(self.data.qvel[self._base_dofadr + 0])
         y_velocity = float(self.data.qvel[self._base_dofadr + 1])
         yaw_velocity = float(self.data.qvel[self._base_dofadr + 5])
@@ -277,9 +288,19 @@ class RSKEnv(MujocoEnv, utils.EzPickle):
             position = position[2:]
 
         x_position, y_position = self._get_xy_position()
+        yaw = self._get_yaw()
+
+        dx = self._target_x - x_position
+        dy = self._target_y - y_position
+
+        cos_yaw = np.cos(yaw)
+        sin_yaw = np.sin(yaw)
+        target_x_robot = dx * cos_yaw + dy * sin_yaw
+        target_y_robot = -dx * sin_yaw + dy * cos_yaw
+
         target_relative = np.array([
-            self._target_x - x_position,
-            self._target_y - y_position,
+            target_x_robot,
+            target_y_robot,
         ])
 
         if self._include_cfrc_ext_in_observation:

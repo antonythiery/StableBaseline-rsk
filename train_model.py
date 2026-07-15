@@ -14,7 +14,7 @@ from utils import draw_target_marker
 
 config = {
     "policy_type": "MlpPolicy",
-    "total_timesteps": 1_200_000,
+    "total_timesteps": 2_000_000,
     "env_id": "rsk_pos",
     "algo": "PPO",
     "forward_reward_weight": 1,
@@ -23,7 +23,7 @@ config = {
 
 ENV_KWARGS = dict(
     render_mode="rgb_array",
-    exclude_current_positions_from_observation=False,
+    exclude_current_positions_from_observation=True,
     include_cfrc_ext_in_observation=False,
     forward_reward_weight=config["forward_reward_weight"],
 )

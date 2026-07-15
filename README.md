@@ -9,7 +9,7 @@ rsk_vel.py permet de définir l'entrainement du robot. Il contient les rewards, 
 ## Commands
 
 - Run training : 
-uv run launcher.py
+uv run train_model.py
 
 - Run model testing : 
 uv run debug_model.py --model models/ppo_rsk_v1.zip

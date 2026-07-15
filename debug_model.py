@@ -7,8 +7,24 @@ import mujoco
 import mujoco.viewer
 from stable_baselines3 import PPO
 
-import src.SB_rsk.tasks  # nécessaire pour enregistrer l'env "RSK"
+import src.SB_rsk.tasks
 from utils import draw_target_marker
+
+config = {
+    "policy_type": "MlpPolicy",
+    "total_timesteps": 2_000_000,
+    "env_id": "rsk_pos",
+    "algo": "PPO",
+    "forward_reward_weight": 1,
+    "n_envs": 8,
+}
+
+ENV_KWARGS = dict(
+    render_mode="rgb_array",
+    exclude_current_positions_from_observation=True,
+    include_cfrc_ext_in_observation=False,
+    forward_reward_weight=config["forward_reward_weight"],
+)
 
 class TargetInputHandler:
     def __init__(self):
@@ -45,19 +61,13 @@ class TargetInputHandler:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, required=True, default="rsk_vel", help="Env used for training (e.g., 'rsk_vel' or 'rsk_pos')")
     parser.add_argument("--model", type=str, required=True, help="Path to the trained model file")
     parser.add_argument("--episodes", type=int, default=5)
+    parser.add_argument("--env", type=str, required=True, default="rsk_pos", help="Env used for training (e.g., 'rsk_vel' or 'rsk_pos')")
     parser.add_argument("--deterministic", action="store_true")
     args = parser.parse_args()
 
-    env = gym.make(
-        args.env,
-        render_mode=None,
-        exclude_current_positions_from_observation=False,
-        include_cfrc_ext_in_observation=False,
-        forward_reward_weight=1,
-    )
+    env = gym.make(config["env_id"], **ENV_KWARGS)
 
     model = PPO.load(args.model, env=env)
 
@@ -68,10 +78,9 @@ def main():
         show_right_ui=False,
     )
 
-    input_handler = TargetInputHandler()
-
-    if args.env == "rsk_vel":
+    if args.env == "rsk_pos":
         try:
+            input_handler = TargetInputHandler()
             for ep in range(args.episodes):
                 obs, info = env.reset()
 
@@ -112,7 +121,7 @@ def main():
             viewer.close()
             env.close()
 
-    if args.env == "rsk_pos":
+    if args.env == "rsk_vel":
         try:
             for ep in range(args.episodes):
                 obs, info = env.reset()
