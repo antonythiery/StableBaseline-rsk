@@ -45,13 +45,14 @@ class TargetInputHandler:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, required=True, help="Chemin vers le .zip du modèle")
+    parser.add_argument("--env", type=str, required=True, default="rsk_vel", help="Env used for training (e.g., 'rsk_vel' or 'rsk_pos')")
+    parser.add_argument("--model", type=str, required=True, help="Path to the trained model file")
     parser.add_argument("--episodes", type=int, default=5)
     parser.add_argument("--deterministic", action="store_true")
     args = parser.parse_args()
 
     env = gym.make(
-        "rsk_pos",
+        args.env,
         render_mode=None,
         exclude_current_positions_from_observation=False,
         include_cfrc_ext_in_observation=False,
@@ -69,46 +70,75 @@ def main():
 
     input_handler = TargetInputHandler()
 
-    try:
-        for ep in range(args.episodes):
-            obs, info = env.reset()
-
-            with input_handler.lock:
-                env.unwrapped._target_x = input_handler.target_x
-                env.unwrapped._target_y = input_handler.target_y
-
-            done = False
-            ep_reward = 0.0
-            step_count = 0
-
-            while not done and viewer.is_running():
+    if args.env == "rsk_vel":
+        try:
+            for ep in range(args.episodes):
+                obs, info = env.reset()
 
                 with input_handler.lock:
                     env.unwrapped._target_x = input_handler.target_x
                     env.unwrapped._target_y = input_handler.target_y
 
-                action, _state = model.predict(obs, deterministic=args.deterministic)
-                obs, reward, terminated, truncated, info = env.step(action)
-                done = terminated or truncated
-                ep_reward += reward
-                step_count += 1
+                done = False
+                ep_reward = 0.0
+                step_count = 0
 
-                draw_target_marker(
-                    viewer,
-                    env.unwrapped._target_x,
-                    env.unwrapped._target_y,
-                )
+                while not done and viewer.is_running():
 
-                viewer.sync()
-                time.sleep(1 / 60)
+                    with input_handler.lock:
+                        env.unwrapped._target_x = input_handler.target_x
+                        env.unwrapped._target_y = input_handler.target_y
 
-            print(f"Episode {ep}: reward={ep_reward:.3f}, steps={step_count}, "
-                  f"terminated={terminated}, truncated={truncated}")
-    except KeyboardInterrupt:
-        pass
-    finally:
-        viewer.close()
-        env.close()
+                    action, _state = model.predict(obs, deterministic=args.deterministic)
+                    obs, reward, terminated, truncated, info = env.step(action)
+                    done = terminated or truncated
+                    ep_reward += reward
+                    step_count += 1
+
+                    draw_target_marker(
+                        viewer,
+                        env.unwrapped._target_x,
+                        env.unwrapped._target_y,
+                    )
+
+                    viewer.sync()
+                    time.sleep(1 / 60)
+
+                print(f"Episode {ep}: reward={ep_reward:.3f}, steps={step_count}, "
+                    f"terminated={terminated}, truncated={truncated}")
+        except KeyboardInterrupt:
+            pass
+        finally:
+            viewer.close()
+            env.close()
+
+    if args.env == "rsk_pos":
+        try:
+            for ep in range(args.episodes):
+                obs, info = env.reset()
+
+                done = False
+                ep_reward = 0.0
+                step_count = 0
+
+                while not done and viewer.is_running():
+                    action, _state = model.predict(obs, deterministic=args.deterministic)
+                    obs, reward, terminated, truncated, info = env.step(action)
+                    done = terminated or truncated
+                    ep_reward += reward
+                    step_count += 1
+
+                    viewer.sync()
+                    time.sleep(1 / 60)
+
+                print(f"Episode {ep}: reward={ep_reward:.3f}, steps={step_count}, "
+                    f"terminated={terminated}, truncated={truncated}")
+        except KeyboardInterrupt:
+            pass
+        finally:
+            viewer.close()
+            env.close()
+
 
 if __name__ == "__main__":
     main()
